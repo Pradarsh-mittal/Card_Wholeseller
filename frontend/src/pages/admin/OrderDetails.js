@@ -68,6 +68,18 @@ export default function AdminOrderDetails() {
   }, [orderId, token, navigate]);
 
   const handleSave = async () => {
+    // Validate: design_sent requires design_preview_url
+    if (formData.status === 'design_sent' && !formData.design_preview_url) {
+      toast.error('Please upload a design preview before setting status to "Design Sent"');
+      return;
+    }
+    
+    // Validate: completed requires invoice
+    if (formData.status === 'completed' && !formData.invoice_url) {
+      toast.error('Please upload an invoice before marking as completed');
+      return;
+    }
+
     setSaving(true);
     try {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};

@@ -670,6 +670,18 @@ async def update_order_status(order_id: str, data: OrderStatusUpdate, request: R
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
+    # Validate: design_sent requires design_preview_url
+    if data.status == "design_sent":
+        existing_preview = order.get("design_preview_url")
+        if not data.design_preview_url and not existing_preview:
+            raise HTTPException(status_code=400, detail="Design preview is required when setting status to 'Design Sent'")
+    
+    # Validate: completed requires invoice
+    if data.status == "completed":
+        existing_invoice = order.get("invoice_url")
+        if not data.invoice_url and not existing_invoice:
+            raise HTTPException(status_code=400, detail="Invoice is required when marking order as completed")
+    
     now = datetime.now(timezone.utc).isoformat()
     timeline = order.get("timeline", [])
     

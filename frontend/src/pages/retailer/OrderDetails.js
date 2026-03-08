@@ -168,7 +168,7 @@ export default function OrderDetails() {
             </Card>
 
             {/* Design Preview */}
-            {order?.design_preview_url && (
+            {(order?.design_preview_url || order?.status === 'design_sent') && (
               <Card data-testid="design-preview-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -177,35 +177,47 @@ export default function OrderDetails() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-slate-100 rounded-lg overflow-hidden">
-                    <img
-                      src={order.design_preview_url}
-                      alt="Design Preview"
-                      className="w-full max-h-[500px] object-contain"
-                    />
-                  </div>
-                  
-                  {order.status === 'design_sent' && (
-                    <div className="flex gap-3 mt-4">
-                      <Button
-                        onClick={handleApproveDesign}
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                        disabled={submitting}
-                        data-testid="approve-design-btn"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Approve Design
-                      </Button>
-                      <Button
-                        onClick={() => setShowRejectDialog(true)}
-                        variant="outline"
-                        className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
-                        disabled={submitting}
-                        data-testid="request-revision-btn"
-                      >
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Request Changes
-                      </Button>
+                  {order?.design_preview_url ? (
+                    <>
+                      <div className="bg-slate-100 rounded-lg overflow-hidden">
+                        <img
+                          src={order.design_preview_url}
+                          alt="Design Preview"
+                          className="w-full max-h-[500px] object-contain"
+                        />
+                      </div>
+                      
+                      {order.status === 'design_sent' && (
+                        <div className="flex gap-3 mt-4">
+                          <Button
+                            onClick={handleApproveDesign}
+                            className="flex-1 bg-green-600 hover:bg-green-700"
+                            disabled={submitting}
+                            data-testid="approve-design-btn"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Approve Design
+                          </Button>
+                          <Button
+                            onClick={() => setShowRejectDialog(true)}
+                            variant="outline"
+                            className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+                            disabled={submitting}
+                            data-testid="request-revision-btn"
+                          >
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Request Changes
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-8 bg-slate-50 rounded-lg">
+                      <Image className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                      <p className="text-slate-600 font-medium">Design Preview Pending</p>
+                      <p className="text-sm text-slate-500 mt-1">
+                        The admin is preparing your design preview. Please check back soon.
+                      </p>
                     </div>
                   )}
                 </CardContent>
