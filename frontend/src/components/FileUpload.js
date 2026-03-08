@@ -32,6 +32,11 @@ export const FileUpload = ({
   };
 
   const uploadToCloudinary = async (file, signature) => {
+    // Check if Cloudinary is configured
+    if (!signature.cloud_name || !signature.api_key) {
+      throw new Error('Cloudinary is not configured. Please contact admin.');
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('api_key', signature.api_key);
@@ -44,7 +49,17 @@ export const FileUpload = ({
       { method: 'POST', body: formData }
     );
 
-    return response.json();
+    // Clone response to avoid "body stream already read" error
+    const responseClone = response.clone();
+    
+    try {
+      const result = await response.json();
+      return result;
+    } catch (jsonError) {
+      // If JSON parsing fails, try to get text error
+      const textError = await responseClone.text();
+      throw new Error(textError || 'Upload failed - invalid response');
+    }
   };
 
   const handleFileSelect = async (e) => {
@@ -55,23 +70,40 @@ export const FileUpload = ({
     setUploading(true);
 
     try {
-      // Show local preview
-      if (resourceType === 'image') {
+      // Create base64 preview for local display
+      const base64Promise = new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onload = (e) => setPreview(e.target.result);
+        reader.onload = (e) => resolve(e.target.result);
         reader.readAsDataURL(file);
+      });
+      
+      const base64Data = await base64Promise;
+      setPreview(base64Data);
+
+      // Try to get signature and upload to Cloudinary
+      try {
+        const signature = await getSignature();
+        
+        // Check if Cloudinary is configured
+        if (signature.cloud_name && signature.api_key && signature.signature) {
+          const result = await uploadToCloudinary(file, signature);
+
+          if (result.error) {
+            throw new Error(result.error.message);
+          }
+
+          setPreview(result.secure_url);
+          onUpload(result.secure_url, result.public_id);
+        } else {
+          // Cloudinary not configured - use base64 as fallback
+          console.warn('Cloudinary not configured, using base64 fallback');
+          onUpload(base64Data, null);
+        }
+      } catch (uploadErr) {
+        // If Cloudinary upload fails, use base64 as fallback
+        console.warn('Cloudinary upload failed, using base64 fallback:', uploadErr.message);
+        onUpload(base64Data, null);
       }
-
-      // Get signature and upload
-      const signature = await getSignature();
-      const result = await uploadToCloudinary(file, signature);
-
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
-
-      setPreview(result.secure_url);
-      onUpload(result.secure_url, result.public_id);
     } catch (err) {
       setError(err.message || 'Upload failed');
       setPreview(currentUrl);
