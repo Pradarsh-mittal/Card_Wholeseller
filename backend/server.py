@@ -795,7 +795,7 @@ async def get_cloudinary_signature(
 
 @app.on_event("startup")
 async def seed_admin():
-    admin = await db.users.find_one({"email": "admin@cardwholesale.com"}, {"_id": 0})
+    admin = await db.users.find_one({"email": "admin@psbots.com"}, {"_id": 0})
     if not admin:
         admin_doc = {
             "user_id": f"user_{uuid.uuid4().hex[:12]}",
