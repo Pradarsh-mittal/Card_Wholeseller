@@ -795,24 +795,25 @@ async def get_cloudinary_signature(
 
 @app.on_event("startup")
 async def seed_admin():
-    admin = await db.users.find_one({"email": "admin@psbots.com"}, {"_id": 0})
+    # Check by role instead of email to allow email changes
+    admin = await db.users.find_one({"role": "admin"}, {"_id": 0})
     if not admin:
         admin_doc = {
             "user_id": f"user_{uuid.uuid4().hex[:12]}",
-            "email": "admin@cardwholesale.com",
-            "name": "Admin",
-            "shop_name": "Card Wholesale HQ",
-            "owner_name": "Admin",
-            "mobile": "0000000000",
-            "address": "Admin Office",
-            "password_hash": hash_password("Pradarsh123"),
+            "email": os.environ.get("ADMIN_EMAIL", "admin@psbots.com"),
+            "name": os.environ.get("ADMIN_NAME", "Pradarsh Mittal"),
+            "shop_name": "PS Bots - Card Wholesale",
+            "owner_name": os.environ.get("ADMIN_NAME", "Pradarsh Mittal"),
+            "mobile": os.environ.get("ADMIN_MOBILE", "0000000000"),
+            "address": "Head Office",
+            "password_hash": hash_password(os.environ.get("ADMIN_PASSWORD", "Pradarsh@123")),
             "role": "admin",
             "status": "approved",
             "picture": None,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(admin_doc)
-        logger.info("Default admin created: admin@cardwholesale.com / admin123")
+        logger.info(f"Default admin created: {os.environ.get('ADMIN_EMAIL', 'admin@psbots.com')}")
 
 # Include router and CORS
 app.include_router(api_router)
