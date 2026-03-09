@@ -8,7 +8,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { StatusBadge } from '../../components/StatusBadge';
-import { FileUpload } from '../../components/FileUpload';
+import { FileUploadVPS } from '../../components/FileUploadVPS';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { ArrowLeft, Save, Loader2, User, Store, Phone, MapPin, FileText, Truck, Image } from 'lucide-react';
@@ -231,12 +231,13 @@ export default function AdminOrderDetails() {
                     <Image className="w-4 h-4" />
                     Design Preview (JPG/PNG only)
                   </Label>
-                  <FileUpload
+                  <FileUploadVPS
                     onUpload={(url) => setFormData({ ...formData, design_preview_url: url })}
-                    folder="card_wholesale/designs"
-                    currentUrl={formData.design_preview_url}
-                    label="Upload Design Preview"
+                    folder="designs"
                     accept="image/jpeg,image/png,image/jpg"
+                    currentUrl={formData.design_preview_url}
+                    label="Upload Design Preview (JPG/PNG)"
+                    showPreview={false}
                   />
                 </div>
 
@@ -246,24 +247,14 @@ export default function AdminOrderDetails() {
                     <FileText className="w-4 h-4" />
                     Invoice Bill (Photo/PDF)
                   </Label>
-                  <FileUpload
+                  <FileUploadVPS
                     onUpload={(url) => setFormData({ ...formData, invoice_url: url })}
-                    folder="card_wholesale/invoices"
+                    folder="invoices"
                     accept="image/*,.pdf,application/pdf"
                     currentUrl={formData.invoice_url}
-                    label="Upload Invoice (Photo/PDF)"
+                    label="Upload Invoice (Photo or PDF)"
+                    showPreview={false}
                   />
-                  {formData.invoice_url && (
-                    <a
-                      href={formData.invoice_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-brand-blue hover:underline mt-2"
-                    >
-                      <FileText className="w-4 h-4" />
-                      View/Download Invoice
-                    </a>
-                  )}
                 </div>
 
                 {/* Transport Bill Upload */}
@@ -272,24 +263,14 @@ export default function AdminOrderDetails() {
                     <Truck className="w-4 h-4" />
                     Transport / Shipping Bill (Photo/PDF)
                   </Label>
-                  <FileUpload
+                  <FileUploadVPS
                     onUpload={(url) => setFormData({ ...formData, transport_bill_url: url })}
-                    folder="card_wholesale/transport"
+                    folder="transport"
                     accept="image/*,.pdf,application/pdf"
                     currentUrl={formData.transport_bill_url}
-                    label="Upload Transport Bill (Photo/PDF)"
+                    label="Upload Transport Bill (Photo or PDF)"
+                    showPreview={false}
                   />
-                  {formData.transport_bill_url && (
-                    <a
-                      href={formData.transport_bill_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-brand-blue hover:underline mt-2"
-                    >
-                      <Truck className="w-4 h-4" />
-                      View/Download Transport Bill
-                    </a>
-                  )}
                 </div>
 
                 {/* Admin Notes */}
