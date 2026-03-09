@@ -805,7 +805,7 @@ async def seed_admin():
             "owner_name": "Admin",
             "mobile": "0000000000",
             "address": "Admin Office",
-            "password_hash": hash_password("admin123"),
+            "password_hash": hash_password("Pradarsh123"),
             "role": "admin",
             "status": "approved",
             "picture": None,
