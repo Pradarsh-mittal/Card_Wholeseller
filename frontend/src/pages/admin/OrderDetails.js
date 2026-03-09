@@ -229,13 +229,14 @@ export default function AdminOrderDetails() {
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Image className="w-4 h-4" />
-                    Design Preview (JPG)
+                    Design Preview (JPG/PNG only)
                   </Label>
                   <FileUpload
                     onUpload={(url) => setFormData({ ...formData, design_preview_url: url })}
                     folder="card_wholesale/designs"
                     currentUrl={formData.design_preview_url}
                     label="Upload Design Preview"
+                    accept="image/jpeg,image/png,image/jpg"
                   />
                 </div>
 
@@ -243,32 +244,52 @@ export default function AdminOrderDetails() {
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <FileText className="w-4 h-4" />
-                    Invoice Bill
+                    Invoice Bill (Photo/PDF)
                   </Label>
                   <FileUpload
                     onUpload={(url) => setFormData({ ...formData, invoice_url: url })}
                     folder="card_wholesale/invoices"
-                    resourceType="raw"
-                    accept="image/*,.pdf"
+                    accept="image/*,.pdf,application/pdf"
                     currentUrl={formData.invoice_url}
-                    label="Upload Invoice"
+                    label="Upload Invoice (Photo/PDF)"
                   />
+                  {formData.invoice_url && (
+                    <a
+                      href={formData.invoice_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-brand-blue hover:underline mt-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      View/Download Invoice
+                    </a>
+                  )}
                 </div>
 
                 {/* Transport Bill Upload */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Truck className="w-4 h-4" />
-                    Transport / Shipping Bill
+                    Transport / Shipping Bill (Photo/PDF)
                   </Label>
                   <FileUpload
                     onUpload={(url) => setFormData({ ...formData, transport_bill_url: url })}
                     folder="card_wholesale/transport"
-                    resourceType="raw"
-                    accept="image/*,.pdf"
+                    accept="image/*,.pdf,application/pdf"
                     currentUrl={formData.transport_bill_url}
-                    label="Upload Transport Bill"
+                    label="Upload Transport Bill (Photo/PDF)"
                   />
+                  {formData.transport_bill_url && (
+                    <a
+                      href={formData.transport_bill_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-brand-blue hover:underline mt-2"
+                    >
+                      <Truck className="w-4 h-4" />
+                      View/Download Transport Bill
+                    </a>
+                  )}
                 </div>
 
                 {/* Admin Notes */}
