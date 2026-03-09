@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Query, Request, Response
 from fastapi.security import HTTPBearer
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -18,8 +19,12 @@ import time
 import asyncio
 import resend
 import httpx
+import shutil
 
 ROOT_DIR = Path(__file__).parent
+UPLOAD_DIR = ROOT_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
@@ -790,6 +795,89 @@ async def get_cloudinary_signature(
         "folder": folder,
         "resource_type": resource_type
     }
+
+# ============== FILE UPLOAD TO VPS ==============
+
+@api_router.post("/upload")
+async def upload_file(
+    request: Request,
+    file: UploadFile = File(...),
+    folder: str = Query("general")
+):
+    """Upload file to VPS filesystem"""
+    await get_current_user(request)
+    
+    # Allowed folders
+    ALLOWED_FOLDERS = ("designs", "invoices", "transport", "cards")
+    if folder not in ALLOWED_FOLDERS:
+        raise HTTPException(status_code=400, detail="Invalid folder")
+    
+    # Create folder if not exists
+    folder_path = UPLOAD_DIR / folder
+    folder_path.mkdir(exist_ok=True)
+    
+    # Validate file type
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.pdf'}
+    file_ext = Path(file.filename).suffix.lower()
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="File type not allowed. Use JPG, PNG, or PDF.")
+    
+    # Generate unique filename
+    unique_filename = f"{uuid.uuid4().hex}{file_ext}"
+    file_path = folder_path / unique_filename
+    
+    # Save file
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+    
+    # Return URL path
+    file_url = f"/api/files/{folder}/{unique_filename}"
+    
+    return {
+        "url": file_url,
+        "filename": unique_filename,
+        "original_name": file.filename,
+        "content_type": file.content_type,
+        "is_image": file_ext in {'.jpg', '.jpeg', '.png', '.gif'}
+    }
+
+@api_router.get("/files/{folder}/{filename}")
+async def serve_file(folder: str, filename: str):
+    """Serve uploaded files"""
+    ALLOWED_FOLDERS = ("designs", "invoices", "transport", "cards")
+    if folder not in ALLOWED_FOLDERS:
+        raise HTTPException(status_code=400, detail="Invalid folder")
+    
+    file_path = UPLOAD_DIR / folder / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Determine content type
+    ext = file_path.suffix.lower()
+    content_types = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.pdf': 'application/pdf'
+    }
+    content_type = content_types.get(ext, 'application/octet-stream')
+    
+    # Read and return file
+    with open(file_path, "rb") as f:
+        content = f.read()
+    
+    return Response(
+        content=content,
+        media_type=content_type,
+        headers={
+            "Content-Disposition": f"inline; filename={filename}"
+        }
+    )
 
 # ============== SEED DEFAULT ADMIN ==============
 
